@@ -51,12 +51,10 @@ def validateUser(username, password):
     db_rw = connect()
     cur = db_rw.cursor()
     #TODO 3 of 6. Use cur.execute() to select the appropriate user record (if it exists)
-    sql = "SELECT `salt`,`passwordhash` FROM `users` WHERE `username`=%s)"
-    args = (username)
-    cur.execute( sql, args )
+    sql = "SELECT `salt`, `passwordhash` FROM `users` WHERE `username`=%s"
+    cur.execute( sql, username )
     if cur.rowcount < 1:
         return False
-    
     user_record = cur.fetchone()
     salt_hex = user_record[0]
     while len(salt_hex) < 64:
@@ -86,8 +84,7 @@ def fetchUser(username):
     cur = db_rw.cursor(mdb.cursors.DictCursor)
     #TODO 4 of 6. Use cur.execute() to fetch the row with this username from the users table, if it exists
     sql = "SELECT `id`,`username` FROM `users` WHERE `username`=%s"
-    args = (username)
-    cur.execute( sql, args )
+    cur.execute( sql, username )
     if cur.rowcount < 1:
         return None    
     return FormsDict(cur.fetchone())
@@ -119,7 +116,6 @@ def getHistory(user_id):
     # Note: Make sure the query text is at index 0 in the returned rows. 
     # Otherwise you will get an error when the templating engine tries to use this object to build the HTML reply.
     sql = "SELECT `query`,`id` FROM `history` WHERE `user_id`=%s ORDER BY `id` DESC LIMIT 15"
-    args = (user_id)
-    cur.execute( sql, args )
+    cur.execute( sql, user_id )
     rows = cur.fetchall();
     return [row[0] for row in rows]
