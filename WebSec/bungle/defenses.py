@@ -26,6 +26,7 @@ class XSSEncodeAngles(object):
     @staticmethod
     def filter(user_input):
         #TODO: 1 of 2 in this file. Complete this filter definition to replace < and > with their HTML entities
+        user_input = user_input.replace('<', '&lt;').replace('>', '&gt;');
         return user_input	
 
 ############################################################
