@@ -36,6 +36,9 @@ def createUser(username, password):
     db_rw = connect()
     cur = db_rw.cursor()
     #TODO 2 of 6. Use cur.execute() to insert a new row into the users table containing the username, salt, and passwordhash
+    sql = "INSERT INTO `users` (`username`,`salt`,`passwordhash`)  VALUES (%s,%s,%s)"
+    args = (username,salt,passwordhash)
+    cur.execute( sql, args )
     db_rw.commit()
 
 def validateUser(username, password):
@@ -48,6 +51,9 @@ def validateUser(username, password):
     db_rw = connect()
     cur = db_rw.cursor()
     #TODO 3 of 6. Use cur.execute() to select the appropriate user record (if it exists)
+    sql = "SELECT `salt`,`passwordhash` FROM `users` WHERE `username`=%s)"
+    args = (username)
+    cur.execute( sql, args )
     if cur.rowcount < 1:
         return False
     
@@ -79,6 +85,9 @@ def fetchUser(username):
     db_rw = connect()
     cur = db_rw.cursor(mdb.cursors.DictCursor)
     #TODO 4 of 6. Use cur.execute() to fetch the row with this username from the users table, if it exists
+    sql = "SELECT `id`,`username` FROM `users` WHERE `username`=%s"
+    args = (username)
+    cur.execute( sql, args )
     if cur.rowcount < 1:
         return None    
     return FormsDict(cur.fetchone())
@@ -92,6 +101,9 @@ def addHistory(user_id, query):
     db_rw = connect()
     cur = db_rw.cursor()
     #TODO 5 of 6. Use cur.execute() to add a row to the history table containing the correct user_id and query
+    sql = "INSERT INTO `history` (`user_id`,`query`)  VALUES (%s,%s)"
+    args = (user_id,query)
+    cur.execute( sql, args )
     db_rw.commit()
 
 def getHistory(user_id):
@@ -106,5 +118,8 @@ def getHistory(user_id):
     #TODO 6 of 6. Use cur.execute() to fetch the most recent 15 queries from this user (including duplicates). 
     # Note: Make sure the query text is at index 0 in the returned rows. 
     # Otherwise you will get an error when the templating engine tries to use this object to build the HTML reply.
+    sql = "SELECT `query`,`id` FROM `history` WHERE `user_id`=%s ORDER BY `id` DESC LIMIT 15"
+    args = (user_id)
+    cur.execute( sql, args )
     rows = cur.fetchall();
     return [row[0] for row in rows]
