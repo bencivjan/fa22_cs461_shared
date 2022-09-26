@@ -15,8 +15,8 @@ def connect():
     # Do not change this value - we use it when grading. 
 
     return mdb.connect(host="localhost",
-                       user="TODO",
-                       passwd="TODO",
+                       user="bcivjan2",
+                       passwd="209d6b107b05bda82fc4b529e44693da416e5805fb3e95ff0b706f1e9adc6c76",
                        db="project2");
 
 def createUser(username, password):
