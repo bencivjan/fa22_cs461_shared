@@ -55,7 +55,9 @@ class CSRFToken(object):
         token = request.get_cookie("csrf_token")
 
         #TODO: 2 of 2 in this file. Implement a CSRF token (see pseudocode in handout)
-
+        if token is None:
+            token = os.urandom(16).hex()
+        response.set_cookie("csrf_token", token)
         return token
     @staticmethod
     def formHTML(token):
