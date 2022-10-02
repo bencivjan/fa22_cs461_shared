@@ -1,1 +1,3 @@
 Cite sources you conslulted for this MP here:
+https://www.geeksforgeeks.org/print-all-combinations-of-given-length/
+https://cvk.posthaven.com/sql-injection-with-raw-md5-hashes
