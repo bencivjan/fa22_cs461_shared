@@ -2,3 +2,4 @@ Cite sources you conslulted for this MP here:
 https://www.geeksforgeeks.org/print-all-combinations-of-given-length/
 https://cvk.posthaven.com/sql-injection-with-raw-md5-hashes
 https://portswigger.net/web-security/csrf
+https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html

