@@ -1,4 +1,4 @@
-
+import sys
 # WHA:
 # Input{inStr: a binary string of bytes}
 # Output{outHash: 32-bit hashcode for the inStr as a series of hex values}
@@ -25,8 +25,22 @@ def WHA(inStr: str):
         outHash = (outHash & mask) + (intermediate_value & mask)
     return outHash
 
-assert WHA(" ") == 0x2c138a75
-assert WHA("Hello world!") == 0x50b027cf
-assert WHA("I am Groot.") == 0x57293cbb
+# assert WHA(" ") == 0x2c138a75
+# assert WHA("Hello world!") == 0x50b027cf
+# assert WHA("I am Groot.") == 0x57293cbb
 
-print("Passed tests")
+# print("Passed tests")
+
+# find weakness
+# assert WHA("ab") == WHA("ba")
+# assert WHA("Hello world!") == WHA("eHllo world!")
+
+inFile = sys.argv[1]
+outFile = sys.argv[2]
+inText = ''
+
+with open(inFile) as f:
+    inText = f.read().strip()
+
+with open(outFile, 'w') as f:
+    f.write(format(WHA(inText), '#x'))
