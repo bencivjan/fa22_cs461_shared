@@ -13,4 +13,13 @@ if __name__ == "__main__":
     my_ip = get_if_addr(sys.argv[1])
     
     # SYN scan
+    print("# ip_addr: ", ip_addr)
+    print("# my_ip: ", my_ip)
 
+    ans, unans = sr(IP(dst=ip_addr)/TCP(dport=(1,1024),flags="S"), timeout=1, verbose=0)
+    for snd,rcv in ans:
+        #print(snd., rcv.flags)
+        port = rcv.sprintf("%r,TCP.sport%")
+        flags = rcv.sprintf("%TCP.flags%")
+        if flags == "SA":
+            print(ip_addr, ", ", port)
