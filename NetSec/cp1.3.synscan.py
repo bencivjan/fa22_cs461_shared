@@ -16,10 +16,11 @@ if __name__ == "__main__":
     print("# ip_addr: ", ip_addr)
     print("# my_ip: ", my_ip)
 
-    ans, unans = sr(IP(dst=ip_addr)/TCP(dport=(1,1024),flags="S"), timeout=3, verbose=0)
+    ans, unans = sr(IP(dst=ip_addr)/TCP(dport=(1,1024),flags="S"), timeout=30, verbose=0)
     for snd,rcv in ans:
         #print(snd., rcv.flags)
         port = rcv.sprintf("%r,TCP.sport%")
         flags = rcv.sprintf("%TCP.flags%")
         if flags == "SA":
             print(ip_addr, ", ", port)
+            ans1, unans1 = sr(IP(dst=ip_addr)/TCP(dport=int(port),flags="R"), timeout=15, verbose=0)
