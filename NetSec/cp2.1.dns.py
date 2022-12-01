@@ -72,7 +72,7 @@ def interceptor(packet):
         #if DNS in packet and ip_src == clientIP and ip_dst == dnsServerIP:
             # print("*hostname:", packet[DNS].qd.qname.decode('utf-8'))
 
-        if DNS in packet and ip_src == serverIP and ip_dst == clientIP:
+        if DNS in packet and ip_src == serverIP and ip_dst == clientIP and packet[DNS].an:
             #print("*hostaddr:", packet[DNS].an.show())
             #print(type(packet[DNS].an.rdata))
             packet[DNS].an.rdata = '10.4.63.200'
